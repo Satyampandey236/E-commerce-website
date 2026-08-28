@@ -5,9 +5,25 @@ const { setUser } = require("../services/authentication");
 
 const router = Router();
 
-router.post("/signup", async (req, res) => {
 
+
+
+router.get("/signup", (req, res) => {
+    return res.render("signup");
+});
+
+router.post("/signup", async (req, res) => {
+     console.log(req.body);
     const { fullName, email, password } = req.body;
+     
+
+    const existingUser = await User.findOne({
+        email,
+    });
+    
+     if (existingUser) {
+        return res.send("User Already Exists");
+    }
 
     await User.create({
         fullName,
@@ -15,12 +31,20 @@ router.post("/signup", async (req, res) => {
         password,
     });
 
-    return res.send("User Created");
+    //return res.send("User Created");
+    return res.redirect("/user/signin");
+    
 });
 
 
 
-router.post("/login", async (req, res) => {
+
+router.get("/signin", (req, res) => {
+    return res.render("signin");
+});
+
+
+router.post("/signin", async (req, res) => {
 
     const { email, password } = req.body;
 
@@ -39,7 +63,8 @@ router.post("/login", async (req, res) => {
 
     res.cookie("uid", sessionId);
 
-    return res.send("Login Success");
+    //return res.send("Login Success");
+    return res.redirect("/");
 });
 
 
