@@ -6,7 +6,10 @@ const userRoute = require("./routes/user");
 const cartRouter = require("./routes/cart");
 const { restrictToLoggedInUserOnly } = require("./middlewares/auth");
 
+//admin routes and middleware import
 
+const adminRouter = require("./routes/admin");
+const { restrictToAdminOnly } = require("./middlewares/admin");
 
 
 const path = require("path");
@@ -36,8 +39,24 @@ app.use(express.static(path.resolve("./public")));
 
 
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+//show name of loggedin useer and admin
+
+const { getUser } = require("./services/authentication");
+
+app.use((req, res, next) => {
+
+    const uid = req.cookies?.uid;
+
+    if (uid) {
+        const user = getUser(uid);
+        res.locals.user = user;
+    } else {
+        res.locals.user = null;
+    }
+
+    next();
+});
 
 // app.get("/", (req, res) => {
 //     res.send("E-Commerce Backend Running");
@@ -63,9 +82,23 @@ app.get("/products-page", async (req, res) => {
     });
 });
 
+
+
+
+
+
+
 app.use("/products", productRoute);
 app.use("/user", userRoute);
 app.use("/cart", restrictToLoggedInUserOnly, cartRouter);
+
+//admin
+app.use(
+    "/admin",
+    restrictToLoggedInUserOnly,
+    restrictToAdminOnly,
+    adminRouter
+);
 
 
 app.listen(PORT, ()=> console.log(`Server Started at PORT:${PORT}`));
